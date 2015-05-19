@@ -10,14 +10,13 @@
 #import "LCActionSheet.h"
 
 // 按钮高度
-#define BUTTON_H 49.0f
+#define BUTTON_H    49.0f
 // 屏幕尺寸
 #define SCREEN_SIZE [UIScreen mainScreen].bounds.size
 // 颜色
-#define LCColor(r, g, b) [UIColor colorWithRed:(r)/255.0f green:(g)/255.0f blue:(b)/255.0f alpha:1.0f]
+#define LCColor(r, g, b) [UIColor colorWithRed: (r) / 255.0f green: (g) / 255.0f blue: (b) / 255.0f alpha: 1.0f]
 
 @interface LCActionSheet () {
-    
     /** 所有按钮 */
     NSArray *_buttonTitles;
     
@@ -26,9 +25,7 @@
     
     /** 所有按钮的底部view */
     UIView *_bottomView;
-    
-    /** 代理 */
-    id<LCActionSheetDelegate> _delegate;
+
 }
 
 @property (nonatomic, strong) UIWindow *backWindow;
@@ -38,25 +35,22 @@
 
 @implementation LCActionSheet
 
-+ (instancetype)sheetWithTitle:(NSString *)title buttonTitles:(NSArray *)titles redButtonIndex:(NSInteger)buttonIndex delegate:(id<LCActionSheetDelegate>)delegate {
-    
-    return [[self alloc] initWithTitle:title buttonTitles:titles redButtonIndex:buttonIndex delegate:delegate];
++ (instancetype)sheetWithTitle:(NSString *)title buttonTitles:(NSArray *)titles redButtonIndex:(NSInteger)buttonIndex onClick:(void (^)(NSInteger index))onClick {
+    return [[self alloc] initWithTitle:title buttonTitles:titles redButtonIndex:buttonIndex onClick:onClick];
 }
 
 - (instancetype)initWithTitle:(NSString *)title
                  buttonTitles:(NSArray *)titles
                redButtonIndex:(NSInteger)buttonIndex
-                     delegate:(id<LCActionSheetDelegate>)delegate {
-    
+                      onClick:(void (^)(NSInteger index))onClick {
     if (self = [super init]) {
-        
-        _delegate = delegate;
+        _onClick = onClick;
         
         // 暗黑色的view
         UIView *darkView = [[UIView alloc] init];
         [darkView setAlpha:0];
         [darkView setUserInteractionEnabled:NO];
-        [darkView setFrame:(CGRect){0, 0, SCREEN_SIZE}];
+        [darkView setFrame:(CGRect) {0, 0, SCREEN_SIZE }];
         [darkView setBackgroundColor:LCColor(46, 49, 50)];
         [self addSubview:darkView];
         _darkView = darkView;
@@ -71,7 +65,6 @@
         _bottomView = bottomView;
         
         if (title) {
-            
             // 标题
             UILabel *label = [[UILabel alloc] init];
             [label setText:title];
@@ -84,11 +77,9 @@
         }
         
         if (titles.count) {
-            
             _buttonTitles = titles;
             
             for (int i = 0; i < titles.count; i++) {
-                
                 // 所有按钮
                 UIButton *btn = [[UIButton alloc] init];
                 [btn setTag:i];
@@ -97,14 +88,13 @@
                 [[btn titleLabel] setFont:[UIFont systemFontOfSize:16.0f]];
                 
                 UIColor *titleColor = nil;
+                
                 if (i == buttonIndex) {
-                    
                     titleColor = LCColor(255, 10, 10);
-                    
                 } else {
-                    
-                    titleColor = [UIColor blackColor] ;
+                    titleColor = [UIColor blackColor];
                 }
+                
                 [btn setTitleColor:titleColor forState:UIControlStateNormal];
                 
                 [btn setBackgroundImage:[UIImage imageNamed:@"bgImage_HL"] forState:UIControlStateHighlighted];
@@ -116,7 +106,6 @@
             }
             
             for (int i = 0; i < titles.count; i++) {
-                
                 // 所有线条
                 UIImageView *line = [[UIImageView alloc] init];
                 [line setImage:[UIImage imageNamed:@"cellLine"]];
@@ -144,94 +133,83 @@
         CGFloat bottomH = (title ? BUTTON_H : 0) + BUTTON_H * titles.count + BUTTON_H + 5.0f;
         [bottomView setFrame:CGRectMake(0, SCREEN_SIZE.height, SCREEN_SIZE.width, bottomH)];
         
-        [self setFrame:(CGRect){0, 0, SCREEN_SIZE}];
+        [self setFrame:(CGRect) {0, 0, SCREEN_SIZE }];
         [self.backWindow addSubview:self];
     }
     
     return self;
 }
 
-- (UIWindow *)backWindow
-{
+- (UIWindow *)backWindow {
     if (_backWindow == nil) {
         _backWindow = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
-        _backWindow.windowLevel       = UIWindowLevelStatusBar;
-        _backWindow.backgroundColor   = [UIColor clearColor];
+        _backWindow.windowLevel = UIWindowLevelStatusBar;
+        _backWindow.backgroundColor = [UIColor clearColor];
         _backWindow.hidden = NO;
     }
+    
     return _backWindow;
 }
 
-
 - (void)didClickBtn:(UIButton *)btn {
-    
     [self dismiss:nil];
     
-    if ([_delegate respondsToSelector:@selector(actionSheet:didClickedButtonAtIndex:)]) {
-        
-        [_delegate actionSheet:self didClickedButtonAtIndex:btn.tag];
+    if (self.onClick) {
+        self.onClick(btn.tag);
     }
 }
 
 - (void)dismiss:(UITapGestureRecognizer *)tap {
-    
     [UIView animateWithDuration:0.3f
                           delay:0
                         options:UIViewAnimationOptionCurveEaseOut
                      animations:^{
-                         
                          [_darkView setAlpha:0];
                          [_darkView setUserInteractionEnabled:NO];
                          
                          CGRect frame = _bottomView.frame;
                          frame.origin.y += frame.size.height;
                          [_bottomView setFrame:frame];
-                         
                      } completion:^(BOOL finished) {
-                         
                          [self removeFromSuperview];
                      }];
 }
 
 - (void)didClickCancelBtn {
-    
+    if (self.onClick) {
+        self.onClick(_buttonTitles.count);
+    }
     [UIView animateWithDuration:0.3f
                           delay:0
                         options:UIViewAnimationOptionCurveEaseOut
                      animations:^{
-                         
                          [_darkView setAlpha:0];
                          [_darkView setUserInteractionEnabled:NO];
                          
                          CGRect frame = _bottomView.frame;
                          frame.origin.y += frame.size.height;
                          [_bottomView setFrame:frame];
-                         
                      } completion:^(BOOL finished) {
-                         
                          [self removeFromSuperview];
                          
-                         if ([_delegate respondsToSelector:@selector(actionSheet:didClickedButtonAtIndex:)]) {
-                             
-                             [_delegate actionSheet:self didClickedButtonAtIndex:_buttonTitles.count];
-                         }
+                         //                         if ([_delegate respondsToSelector:@selector(actionSheet:didClickedButtonAtIndex:)]) {
+                         //
+                         //                             [_delegate actionSheet:self didClickedButtonAtIndex:_buttonTitles.count];
+                         //                         }
                      }];
 }
 
 - (void)show {
-    
     [UIView animateWithDuration:0.3f
                           delay:0
                         options:UIViewAnimationOptionCurveEaseOut
                      animations:^{
-                         
                          [_darkView setAlpha:0.4f];
                          [_darkView setUserInteractionEnabled:YES];
                          
                          CGRect frame = _bottomView.frame;
                          frame.origin.y -= frame.size.height;
                          [_bottomView setFrame:frame];
-                         
                      } completion:nil];
 }
 

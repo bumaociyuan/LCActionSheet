@@ -9,7 +9,7 @@
 #import "ViewController.h"
 #import "LCActionSheet.h"
 
-@interface ViewController () <LCActionSheetDelegate, UITableViewDelegate>
+@interface ViewController () <UITableViewDelegate>
 
 @end
 
@@ -17,32 +17,28 @@
 
 /** 注销 */
 - (IBAction)logout {
-    
     // 实例方法
     LCActionSheet *sheet = [[LCActionSheet alloc] initWithTitle:@"你确定要注销吗？"
                                                    buttonTitles:@[@"确定"]
                                                  redButtonIndex:0
-                                                       delegate:self];
+                                                        onClick:^(NSInteger index) {
+                                                            NSLog(@"%d",index);
+                                                        }];
+    
     [sheet show];
 }
 
 /** 修改头像 */
 - (IBAction)changeHeader {
-    
     // 类方法
     LCActionSheet *sheet = [LCActionSheet sheetWithTitle:nil
                                             buttonTitles:@[@"拍照", @"从相册选择"]
                                           redButtonIndex:-1
-                                                delegate:self];
+                                                 onClick:^(NSInteger index) {
+                                                     NSLog(@"%d",index);
+                                                 }];
     
     [sheet show];
-}
-
-#pragma mark - LCActionSheet 代理方法
-
-- (void)actionSheet:(LCActionSheet *)actionSheet didClickedButtonAtIndex:(NSInteger)buttonIndex {
-    
-    NSLog(@"> Clicked Index: %d", buttonIndex);
 }
 
 @end
